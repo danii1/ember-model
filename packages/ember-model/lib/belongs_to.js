@@ -62,9 +62,21 @@ Ember.Model.reopen({
         id = idOrAttrs[primaryKey];
       record = type.create({ isLoaded: false, id: id });
       record.load(id, idOrAttrs);
+
+      var self = this;
+      Ember.assert(false, record.get('isDirty')); // getter must be called before adding observer
+      Ember.addObserver(record, 'isDirty', function(record) {
+        if (record.get('isDirty')) {
+          self._relationshipBecameDirty(key);
+        } else {
+          self._relationshipBecameClean(key);
+        }
+      });
     } else {
       record = type.find(idOrAttrs);
     }
+
+    this._registerBelongsTo(meta);
 
     return record;
   }
